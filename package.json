@@ -1,0 +1,24 @@
+{
+  "name": "flight",
+  "version": "0.0.1",
+  "description": "Terminal API Tester with a focus on OAuth and JSON",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelsin/flight.git"
+  },
+  "author": "Christopher Giroir <kelsin@valefor.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kelsin/flight/issues"
+  },
+  "homepage": "https://github.com/kelsin/flight",
+  "dependencies": {
+    "blessed": "0.0.37",
+    "request": "^2.48.0",
+    "selenium-webdriver": "^2.44.0"
+  }
+}
