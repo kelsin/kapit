@@ -119,6 +119,9 @@ screen.key('p', function(ch, key) {
 screen.key('x', function(ch, key) {
   var activeRequest = data.chain[data.activeRequest];
 
+  activeRequest.output = '{bold}{red-fg}Loading ...{/}';
+  update();
+
   if(activeRequest.type === 'HTTP') {
     http({
       method: activeRequest.http.method,
@@ -128,9 +131,9 @@ screen.key('x', function(ch, key) {
     }, function(error, response, body) {
       if(error || response.statusCode !== 200) {
         activeRequest.error = true;
+      } else {
+        activeRequest.completed = true;
       }
-
-      activeRequest.completed = true;
 
       var result = '{green-fg}status{/}: ' + response.statusCode + '\n';
       result += _.reduce(response.headers, function(str, value, header) {
@@ -143,12 +146,17 @@ screen.key('x', function(ch, key) {
 
       update();
     });
+  } else {
+    activeRequest.output = '{red-fg}Unknown type!{/}';
+    activeRequest.error = true;
+    update();
   }
 });
 
 screen.key('r', function(ch, key) {
   delete data.chain[data.activeRequest].completed;
   delete data.chain[data.activeRequest].output;
+  delete data.chain[data.activeRequest].error;
   update();
 });
 
@@ -160,12 +168,10 @@ var update = function() {
       color += '{underline}{yellow-fg}';
     }
 
-    if(request.completed) {
-      if(request.error) {
-        color += '{red-fg}';
-      } else {
-        color += '{green-fg}';
-      }
+    if(request.error) {
+      color += '{red-fg}';
+    } else if(request.completed) {
+      color += '{green-fg}';
     } else {
       color += '{blue-fg}';
     }
