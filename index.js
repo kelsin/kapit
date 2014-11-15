@@ -14,19 +14,18 @@ var data = {
   chain: [{
     name: 'Authorize',
     type: 'OAUTH',
-    method: 'authorize',
-    url: 'https://us.battle.net/oauth/authorize'
+    endpoint: 'https://us.battle.net/oauth/authorize'
   }, {
     name: 'Access Token',
     type: 'OAUTH',
-    method: 'token',
-    url: 'https://us.battle.net/oauth/token'
+    endpoint: 'https://us.battle.net/oauth/token'
   }, {
     name: 'Get Hero',
     type: 'HTTP',
     http: {
       url: 'https://us.api.battle.net/data/cgiroir/hero/kerrigan',
       method: 'GET',
+      json: true,
       headers: {
         Authorization: 'Bearer 345'
       }
@@ -88,14 +87,14 @@ var chainProgress = blessed.ProgressBar({
 var request = section('Request', {
   width: '50%',
   top: 4,
-  bottom: 3
+  bottom: 0
 });
 
 var output = section('Output', {
   width: '50%',
   right: 0,
   top: 4,
-  bottom: 3
+  bottom: 0
 });
 
 screen.append(chain);
@@ -123,21 +122,25 @@ screen.key('x', function(ch, key) {
   update();
 
   if(activeRequest.type === 'HTTP') {
-    http({
-      method: activeRequest.http.method,
-      url: activeRequest.http.url,
-      headers: activeRequest.http.headers,
-      json: true
-    }, function(error, response, body) {
+    http(activeRequest.http, function(error, response, body) {
       if(error || response.statusCode !== 200) {
         activeRequest.error = true;
       } else {
         activeRequest.completed = true;
       }
 
-      var result = '{green-fg}status{/}: ' + response.statusCode + '\n';
+      // Output Status
+      var result = '{yellow-fg}STATUS{/}: ';
+      if(activeRequest.error) {
+        result += '{red-fg}';
+      } else {
+        result += '{green-fg}';
+      }
+      result += response.statusCode + '{/}\n\n';
+
+      // Output Headers
       result += _.reduce(response.headers, function(str, value, header) {
-        return str += '{green-fg}' + header + '{/}: ' + value + '\n';
+        return str += '{yellow-fg}' + header + '{/}: ' + value + '\n';
       }, '');
       result += '\n';
       result += cardinal.highlight(JSON.stringify(body, null, 2), { json: true });
@@ -191,9 +194,31 @@ var update = function() {
   chainProgress.setProgress(Math.round(data.completed / data.chain.length * 100.0));
 
   // Data output for now
-  var requestContent = _.cloneDeep(data.chain[data.activeRequest]);
-  delete requestContent.output;
-  request.setContent(cardinal.highlight(JSON.stringify(requestContent, null, 2), { json: true }));
+  var activeRequest = data.chain[data.activeRequest];
+  var requestContent = '';
+
+  requestContent += '{green-fg}Name{/}: ' + activeRequest.name + '\n';
+  requestContent += '{green-fg}Type{/}: ' + activeRequest.type + '\n';
+
+  if (activeRequest.type === 'HTTP') {
+    if(activeRequest.http.json) {
+      requestContent += '{green-fg}Format{/}: JSON\n';
+    }
+    requestContent += '\n';
+    requestContent += '{green-fg}' + activeRequest.http.method + '{/} ' + activeRequest.http.url + '\n';
+    _.each(activeRequest.http.headers, function(value, key) {
+      requestContent += '{green-fg}' + key + '{/}: ' + value + '\n';
+    });
+    requestContent += '\n';
+  } else if (activeRequest.type === 'OAUTH') {
+    requestContent += '{green-fg}Endpoint{/}: ' + activeRequest.endpoint + '\n';
+  } else {
+    var requestObject = _.cloneDeep(activeRequest);
+    delete requestObject.output;
+    requestContent += '\n' + cardinal.highlight(JSON.stringify(requestObject, null, 2), { json: true });
+  }
+
+  request.setContent(requestContent);
 
   if(data.chain[data.activeRequest].output) {
     output.setContent(data.chain[data.activeRequest].output);
