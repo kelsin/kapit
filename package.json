@@ -19,6 +19,7 @@
   "homepage": "https://github.com/kelsin/flight",
   "dependencies": {
     "blessed": "0.0.37",
+    "lodash": "^2.4.1",
     "request": "^2.48.0",
     "selenium-webdriver": "^2.44.0"
   }
