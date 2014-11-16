@@ -30,6 +30,14 @@ var data = {
         Authorization: 'Bearer 345'
       }
     }
+  }, {
+    name: 'Get Character',
+    type: 'HTTP',
+    http: {
+      url: 'https://us.battle.net/api/wow/character/bronzebeard/Emacs?fields=pets,mounts',
+      method: 'GET',
+      json: true
+    }
   }]
 }
 
@@ -54,7 +62,7 @@ var section = function(text, options) {
     left: 1,
     content: text,
     style: {
-      fg: 'blue'
+      fg: 'magenta'
     }
   });
 
@@ -62,38 +70,22 @@ var section = function(text, options) {
 };
 
 var chain = section('Chain', {
-  align: 'center',
+  align: 'left',
   width: '100%',
-  height: 4,
+  height: 3,
   content: ''
-});
-
-var chainProgress = blessed.ProgressBar({
-  parent: chain,
-  orientation: 'horizontal',
-  filled: 50,
-  top: 2,
-  left: 2,
-  right: 2,
-  height: 1,
-  style: {
-    bg: 0,
-    bar: {
-      bg: 13
-    }
-  }
 });
 
 var request = section('Request', {
   width: '50%',
-  top: 4,
+  top: 3,
   bottom: 0
 });
 
 var output = section('Output', {
   width: '50%',
   right: 0,
-  top: 4,
+  top: 3,
   bottom: 0
 });
 
@@ -181,17 +173,6 @@ var update = function() {
 
     return color + request.name + '{/}';
   }).join(' → '));
-
-  // find number of completed requests
-  data.completed = _(data.chain).reduce(function (total, request) {
-    if(request.completed) {
-      return total + 1;
-    } else {
-      return total;
-    }
-  }, 0);
-
-  chainProgress.setProgress(Math.round(data.completed / data.chain.length * 100.0));
 
   // Data output for now
   var activeRequest = data.chain[data.activeRequest];
