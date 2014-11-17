@@ -42,31 +42,29 @@ var data = {
 }
 
 var section = function(text, options) {
-  var box = blessed.box(_.merge({
+  return blessed.box(_.merge({
     padding: {
       left: 1,
       right: 1
     },
+    label: ' ' + text + ' ',
     tags: true,
     border: {
       type: 'line',
       fg: 'black'
+    },
+    style: {
+      label: {
+        fg: 'magenta'
+      },
+      focus: {
+        border: {
+          fg: 'magenta',
+          bold: true
+        }
+      }
     }
   }, options));
-
-  var title = blessed.text({
-    parent: box,
-    align: 'center',
-    height: 1,
-    width: text.length + 2,
-    left: 1,
-    content: text,
-    style: {
-      fg: 'magenta'
-    }
-  });
-
-  return box;
 };
 
 var chain = section('Chain', {
@@ -79,14 +77,23 @@ var chain = section('Chain', {
 var request = section('Request', {
   width: '50%',
   top: 3,
-  bottom: 0
+  bottom: 0,
+  scrollable: true,
+  alwaysScroll: true,
+  keys: true,
+  vi: true
 });
 
 var output = section('Output', {
   width: '50%',
   right: 0,
   top: 3,
-  bottom: 0
+  bottom: 0,
+  focused: true,
+  scrollable: true,
+  alwaysScroll: true,
+  keys: true,
+  vi: true
 });
 
 screen.append(chain);
@@ -122,7 +129,7 @@ screen.key('x', function(ch, key) {
       }
 
       // Output Status
-      var result = '{yellow-fg}STATUS{/}: ';
+      var result = '{yellow-fg}status{/}: ';
       if(activeRequest.error) {
         result += '{red-fg}';
       } else {
@@ -153,6 +160,14 @@ screen.key('r', function(ch, key) {
   delete data.chain[data.activeRequest].output;
   delete data.chain[data.activeRequest].error;
   update();
+});
+
+screen.key('tab', function(ch, key) {
+  if(request.focused) {
+    output.focus();
+  } else {
+    request.focus();
+  }
 });
 
 var update = function() {
