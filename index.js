@@ -7,39 +7,11 @@ var blessed = require('blessed');
 var cardinal = require('cardinal');
 var http = require('request');
 
-var screen = blessed.screen();
+// Our requires
+var data = require('./lib/data');
+var edit = require('./lib/edit');
 
-var data = {
-  activeRequest: 2,
-  chain: [{
-    name: 'Authorize',
-    type: 'OAUTH',
-    endpoint: 'https://us.battle.net/oauth/authorize'
-  }, {
-    name: 'Access Token',
-    type: 'OAUTH',
-    endpoint: 'https://us.battle.net/oauth/token'
-  }, {
-    name: 'Get Hero',
-    type: 'HTTP',
-    http: {
-      url: 'https://us.api.battle.net/data/cgiroir/hero/kerrigan',
-      method: 'GET',
-      json: true,
-      headers: {
-        Authorization: 'Bearer 345'
-      }
-    }
-  }, {
-    name: 'Get Character',
-    type: 'HTTP',
-    http: {
-      url: 'https://us.battle.net/api/wow/character/bronzebeard/Emacs?fields=pets,mounts',
-      method: 'GET',
-      json: true
-    }
-  }]
-}
+var screen = blessed.screen();
 
 var section = function(text, options) {
   return blessed.box(_.merge({
@@ -47,7 +19,7 @@ var section = function(text, options) {
       left: 1,
       right: 1
     },
-    label: ' ' + text + ' ',
+    label: text,
     tags: true,
     border: {
       type: 'line',
@@ -77,7 +49,7 @@ var chain = section('Chain', {
 var request = section('Request', {
   width: '50%',
   top: 3,
-  bottom: 0,
+  bottom: 2,
   scrollable: true,
   alwaysScroll: true,
   keys: true,
@@ -88,7 +60,7 @@ var output = section('Output', {
   width: '50%',
   right: 0,
   top: 3,
-  bottom: 0,
+  bottom: 2,
   focused: true,
   scrollable: true,
   alwaysScroll: true,
@@ -96,32 +68,56 @@ var output = section('Output', {
   vi: true
 });
 
+var message = blessed.text({
+  padding: {
+    left: 1,
+    right: 1
+  },
+  width: '100%',
+  height: 1,
+  bottom: 1,
+  content: '',
+  tags: true
+});
+
+var setMessage = function(msg) {
+  message.setContent(msg);
+};
+
+var clearMessage = function() {
+  message.setContent();
+};
+
 screen.append(chain);
 screen.append(request);
 screen.append(output);
+screen.append(message);
 
 screen.key('q', function(ch, key) {
   return process.exit(0);
 });
 
 screen.key('n', function(ch, key) {
-  data.activeRequest = Math.min((data.chain.length - 1), data.activeRequest + 1);
+  data.nextRequest();
   update();
 });
 
 screen.key('p', function(ch, key) {
-  data.activeRequest = Math.max(0, data.activeRequest - 1);
+  data.prevRequest();
   update();
 });
 
 screen.key('x', function(ch, key) {
-  var activeRequest = data.chain[data.activeRequest];
+  var activeRequest = data.getCurrentRequest();
 
-  activeRequest.output = '{bold}{red-fg}Loading ...{/}';
+  setMessage('{bold}{red-fg}Loading ...{/}');
+  //activeRequest.output = '{bold}{red-fg}Loading ...{/}';
   update();
 
   if(activeRequest.type === 'HTTP') {
     http(activeRequest.http, function(error, response, body) {
+      clearMessage();
+
       if(error || response.statusCode !== 200) {
         activeRequest.error = true;
       } else {
@@ -155,10 +151,28 @@ screen.key('x', function(ch, key) {
   }
 });
 
+screen.key('s', function(ch, key) {
+  setMessage('Saving...');
+  update();
+
+  data.save().then(function() {
+    setMessage('Saved');
+    update();
+  });
+});
+
+screen.key('c', function(ch, key) {
+  data.newRequest();
+  update();
+});
+
 screen.key('r', function(ch, key) {
-  delete data.chain[data.activeRequest].completed;
-  delete data.chain[data.activeRequest].output;
-  delete data.chain[data.activeRequest].error;
+  data.resetRequest();
+  update();
+});
+
+screen.key('S-r', function(ch, key) {
+  data.resetAllRequests();
   update();
 });
 
@@ -170,11 +184,19 @@ screen.key('tab', function(ch, key) {
   }
 });
 
+screen.key('b', function(ch, key) {
+  var text = data.getCurrentRequest().body || '{}';
+  edit(screen, text).then(function(body) {
+    data.getCurrentRequest().body = body;
+    update();
+  });
+});
+
 var update = function() {
-  chain.setContent(_(data.chain).map(function(request, index) {
+  chain.setContent(_(data.getCurrentRequests()).map(function(request, index) {
     var color = '';
 
-    if(index === data.activeRequest) {
+    if(index === data.getCurrentChain().current) {
       color += '{underline}{yellow-fg}';
     }
 
@@ -190,7 +212,7 @@ var update = function() {
   }).join(' → '));
 
   // Data output for now
-  var activeRequest = data.chain[data.activeRequest];
+  var activeRequest = data.getCurrentRequest();
   var requestContent = '';
 
   requestContent += '{green-fg}Name{/}: ' + activeRequest.name + '\n';
@@ -206,6 +228,7 @@ var update = function() {
       requestContent += '{green-fg}' + key + '{/}: ' + value + '\n';
     });
     requestContent += '\n';
+    requestContent += cardinal.highlight(JSON.stringify(JSON.parse(activeRequest.body || '{}'), null, 2), { json: true });
   } else if (activeRequest.type === 'OAUTH') {
     requestContent += '{green-fg}Endpoint{/}: ' + activeRequest.endpoint + '\n';
   } else {
@@ -216,13 +239,19 @@ var update = function() {
 
   request.setContent(requestContent);
 
-  if(data.chain[data.activeRequest].output) {
-    output.setContent(data.chain[data.activeRequest].output);
+  if(data.getCurrentRequest().output) {
+    output.setContent(data.getCurrentRequest().output);
   } else {
     output.setContent('');
   }
 
   screen.render();
+  data.save();
 };
 
-update();
+data.load()
+  .then(update)
+  .catch(function(e) {
+    //console.error(e);
+    //process.exit(1);
+  });
