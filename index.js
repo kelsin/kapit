@@ -4,12 +4,12 @@ process.title = 'Flight';
 
 var _ = require('lodash');
 var blessed = require('blessed');
-var cardinal = require('cardinal');
 var http = require('request');
 
 // Our requires
 var data = require('./lib/data');
 var edit = require('./lib/edit');
+var render = require('./lib/render');
 
 var screen = blessed.screen();
 
@@ -56,7 +56,7 @@ var request = section('Request', {
   vi: true
 });
 
-var output = section('Output', {
+var response = section('Response', {
   width: '50%',
   right: 0,
   top: 3,
@@ -85,12 +85,14 @@ var setMessage = function(msg) {
 };
 
 var clearMessage = function() {
-  message.setContent();
+  message.setContent('');
 };
+
+clearMessage();
 
 screen.append(chain);
 screen.append(request);
-screen.append(output);
+screen.append(response);
 screen.append(message);
 
 screen.key('q', function(ch, key) {
@@ -98,160 +100,148 @@ screen.key('q', function(ch, key) {
 });
 
 screen.key('n', function(ch, key) {
-  data.nextRequest();
-  update();
+  data.nextStep();
+  updateChain();
+  updateRequest();
+  updateResponse();
+  screen.render();
 });
 
 screen.key('p', function(ch, key) {
-  data.prevRequest();
-  update();
+  data.prevStep();
+  updateChain();
+  updateRequest();
+  updateResponse();
+  screen.render();
 });
 
 screen.key('x', function(ch, key) {
-  var activeRequest = data.getCurrentRequest();
-
+  data.resetStep();
   setMessage('{bold}{red-fg}Loading ...{/}');
-  //activeRequest.output = '{bold}{red-fg}Loading ...{/}';
-  update();
+  updateResponse();
+  screen.render();
 
-  if(activeRequest.type === 'HTTP') {
-    http(activeRequest.http, function(error, response, body) {
+  var currentStep = data.getCurrentStep();
+
+  if(currentStep.type === 'HTTP') {
+    http(currentStep.request, function(error, response, body) {
       clearMessage();
 
+      currentStep.response.status = response.statusCode;
+      currentStep.response.completed = true;
+
       if(error || response.statusCode !== 200) {
-        activeRequest.error = true;
-      } else {
-        activeRequest.completed = true;
+        currentStep.response.error = true;
       }
 
-      // Output Status
-      var result = '{yellow-fg}status{/}: ';
-      if(activeRequest.error) {
-        result += '{red-fg}';
-      } else {
-        result += '{green-fg}';
-      }
-      result += response.statusCode + '{/}\n\n';
+      currentStep.response.headers = response.headers;
+      currentStep.response.body = body;
 
-      // Output Headers
-      result += _.reduce(response.headers, function(str, value, header) {
-        return str += '{yellow-fg}' + header + '{/}: ' + value + '\n';
-      }, '');
-      result += '\n';
-      result += cardinal.highlight(JSON.stringify(body, null, 2), { json: true });
-
-      activeRequest.output = result;
-
-      update();
+      currentStep.render.response = render.response(currentStep);
+      updateChain();
+      updateResponse();
+      screen.render();
     });
+
   } else {
-    activeRequest.output = '{red-fg}Unknown type!{/}';
-    activeRequest.error = true;
-    update();
+    clearMessage();
+    response.setContent('{red-fg}Unknown type!{/}');
+    currentStep.response.error = true;
+    updateChain();
+    screen.render();
   }
 });
 
 screen.key('s', function(ch, key) {
   setMessage('Saving...');
-  update();
+  screen.render();
 
   data.save().then(function() {
     setMessage('Saved');
-    update();
+    screen.render();
   });
 });
 
 screen.key('c', function(ch, key) {
   data.newRequest();
-  update();
+  updateChain();
+  updateRequest();
+  updateResponse();
+  screen.render();
 });
 
 screen.key('r', function(ch, key) {
-  data.resetRequest();
-  update();
+  data.resetStep();
+  updateChain();
+  updateRequest();
+  updateResponse();
+  screen.render();
 });
 
 screen.key('S-r', function(ch, key) {
-  data.resetAllRequests();
-  update();
+  data.resetAllSteps();
+  updateRequest();
+  screen.render();
+});
+
+screen.key('w', function(ch, key) {
+  data.toggleRaw();
+  var step = data.getCurrentStep();
+  step.render = {};
+  updateRequest();
+  updateResponse();
+  screen.render();
 });
 
 screen.key('tab', function(ch, key) {
   if(request.focused) {
-    output.focus();
+    response.focus();
   } else {
     request.focus();
   }
 });
 
 screen.key('b', function(ch, key) {
-  var text = data.getCurrentRequest().body || '{}';
+  var text = data.getCurrentStep().request.body || '{}';
   edit(screen, text).then(function(body) {
-    data.getCurrentRequest().body = body;
-    update();
+    data.getCurrentStep().request.body = body;
+    updateRequest();
+    screen.render();
   });
 });
 
-var update = function() {
-  chain.setContent(_(data.getCurrentRequests()).map(function(request, index) {
-    var color = '';
+var updateChain = function() {
+  chain.setContent(render.chain());
+};
 
-    if(index === data.getCurrentChain().current) {
-      color += '{underline}{yellow-fg}';
-    }
-
-    if(request.error) {
-      color += '{red-fg}';
-    } else if(request.completed) {
-      color += '{green-fg}';
-    } else {
-      color += '{blue-fg}';
-    }
-
-    return color + request.name + '{/}';
-  }).join(' → '));
-
-  // Data output for now
-  var activeRequest = data.getCurrentRequest();
-  var requestContent = '';
-
-  requestContent += '{green-fg}Name{/}: ' + activeRequest.name + '\n';
-  requestContent += '{green-fg}Type{/}: ' + activeRequest.type + '\n';
-
-  if (activeRequest.type === 'HTTP') {
-    if(activeRequest.http.json) {
-      requestContent += '{green-fg}Format{/}: JSON\n';
-    }
-    requestContent += '\n';
-    requestContent += '{green-fg}' + activeRequest.http.method + '{/} ' + activeRequest.http.url + '\n';
-    _.each(activeRequest.http.headers, function(value, key) {
-      requestContent += '{green-fg}' + key + '{/}: ' + value + '\n';
-    });
-    requestContent += '\n';
-    requestContent += cardinal.highlight(JSON.stringify(JSON.parse(activeRequest.body || '{}'), null, 2), { json: true });
-  } else if (activeRequest.type === 'OAUTH') {
-    requestContent += '{green-fg}Endpoint{/}: ' + activeRequest.endpoint + '\n';
-  } else {
-    var requestObject = _.cloneDeep(activeRequest);
-    delete requestObject.output;
-    requestContent += '\n' + cardinal.highlight(JSON.stringify(requestObject, null, 2), { json: true });
+var updateRequest = function() {
+  var step = data.getCurrentStep();
+  if(!step.render.request) {
+    step.render.request = render.request(step);
   }
+  request.setContent(step.render.request);
+};
 
-  request.setContent(requestContent);
-
-  if(data.getCurrentRequest().output) {
-    output.setContent(data.getCurrentRequest().output);
+var updateResponse = function() {
+  var step = data.getCurrentStep();
+  if(step.response.completed) {
+    if(!step.render.response) {
+      step.render.response = render.response(step);
+    }
+    response.setContent(step.render.response);
   } else {
-    output.setContent('');
+    response.setContent();
   }
-
-  screen.render();
-  data.save();
 };
 
 data.load()
-  .then(update)
+  .then(updateChain)
+  .then(updateRequest)
+  .then(updateResponse)
+  .then(function() {
+    screen.render();
+  })
   .catch(function(e) {
-    //console.error(e);
+    console.error(e);
     //process.exit(1);
   });
