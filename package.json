@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": "index.js",
+  "bin": {
+    "flight": "lib/flight.js"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/kelsin/flight.git"
