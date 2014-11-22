@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "flight": "lib/flight.js"
+    "flight": "bin/flight.js"
   },
   "repository": {
     "type": "git",
