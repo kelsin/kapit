@@ -89,8 +89,9 @@ I can use it as part of my header in a new step by:
 Since Kapit will convert the body of the `Token` request to json we can pull out
 exactly what we need. If you requests have spaces in the name or arrays you can
 still use handlebars to get them out with strings like
-`{{[Name with space].list.5.item}}`. You should check out Handlebars
-documentation for more details.
+`{{[Name with space].list.5.item}}`. You should check out
+[Handlebars documentation](http://handlebarsjs.com/expressions.html) for more
+details.
 
 ### Keybindings
 
