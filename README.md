@@ -2,6 +2,7 @@
 
 Terminal API Tester with a focus on JSON
 
+[![NPM Version](http://img.shields.io/npm/v/kapit.svg)](https://www.npmjs.org/package/kapit)
 [![Build Status](http://img.shields.io/travis/kelsin/kapit.svg)](https://travis-ci.org/kelsin/kapit)
 [![Code Coverage](http://img.shields.io/codeclimate/coverage/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
 [![Code Climate](http://img.shields.io/codeclimate/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
