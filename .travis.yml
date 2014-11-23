@@ -7,7 +7,7 @@ matrix:
   - node_js: '0.11'
 env:
   global:
-    - secure: "BjHGYTH+6+ZUj3Dc/kI8JGwoO54DkFiHsQmqNAEBUz9xeNQ7WeiWiCs4PiEaNQxAbalDcF4FBLNPWUDYV1T5U6FYax+qKeCrZcpdrWFTBoH2qUEjAIi+pVqLZxaKNgunW+MdUJLcGvhSPoNkEN/4c5CRgC9UdtaAh48RStm014M="
+    - secure: "A6aMc3nfEJwNb8dGkrt51LlVvvBN6euqHziPFsDu/VuqPgL69CI5RQGB1rNYrxRcpVmn+kz9dENz93F08RfGiBi4ytoqLb5kE+vYze8GNwJatEOJTfYe/jfGcgPoCp4HDpLmif1Rl8rfPWiB1TpdcNBv2Hm8CuqJZj2mTHveVE4="
 cache:
   directories:
   - node_modules
