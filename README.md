@@ -8,6 +8,9 @@ Terminal API Tester with a focus on OAuth and JSON
 [![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kelsin/kapit/blob/master/LICENSE)
 [![Tips](https://img.shields.io/gratipay/kelsin.svg)](https://gratipay.com/kelsin/)
 
+**Note**: this software is still in early alpha and is not fully featured, and
+will probably break on you.
+
 Kapit is a program that runs in your terminal and allows you to run HTTP
 commands. While not nearly as full featured as [curl](http://curl.haxx.se/) or
 libraries (like [request](https://github.com/request/request)) it has a few
