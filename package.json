@@ -4,7 +4,7 @@
   "description": "Terminal API Tester with a focus on OAuth and JSON",
   "main": "lib/flight.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha"
   },
   "bin": {
     "flight": "bin/flight.js"
