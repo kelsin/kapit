@@ -77,7 +77,7 @@ screen.append(help);
 
 <span class="hljs-keyword">var</span> getInput = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(label, value, callback)</span> {</span>
   input.setLabel(label);
-  input.setValue(value);
+  input.setValue(value || <span class="hljs-string">''</span>);
   input.show();
   screen.focusPush(input);
   screen.render();
@@ -362,21 +362,28 @@ screen.key(<span class="hljs-string">'t'</span>, <span class="hljs-function"><sp
   <span class="hljs-keyword">if</span> (step) {
     getInput(<span class="hljs-string">'Step Type'</span>, step.type, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(type)</span> {</span>
       step.type = type;
-      data.resetStep();
       updateRequest();
     });
   }
 });
 
-screen.key(<span class="hljs-string">'u'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+<span class="hljs-keyword">var</span> editField = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(label, field)</span> {</span>
   <span class="hljs-keyword">var</span> step = data.getCurrentStep();
 
   <span class="hljs-keyword">if</span> (step) {
-    getInput(<span class="hljs-string">'URL'</span>, step.request.url, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url)</span> {</span>
-      step.request.url = url;
+    getInput(label, step.request[field], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+      step.request[field] = value;
       updateRequest();
     });
   }
+};
+
+screen.key(<span class="hljs-string">'u'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  editField(<span class="hljs-string">'URL'</span>, <span class="hljs-string">'url'</span>);
+});
+
+screen.key(<span class="hljs-string">'m'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  editField(<span class="hljs-string">'Method'</span>, <span class="hljs-string">'method'</span>);
 });
 
 screen.key(<span class="hljs-string">'a'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
@@ -409,17 +416,6 @@ screen.key(<span class="hljs-string">'c'</span>, <span class="hljs-function"><sp
   } <span class="hljs-keyword">else</span> {
     setMessage(<span class="hljs-string">'{red-fg}No current chain to edit name on!{/}'</span>);
     screen.render();
-  }
-});
-
-screen.key(<span class="hljs-string">'m'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
-  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
-
-  <span class="hljs-keyword">if</span> (step) {
-    getInput(<span class="hljs-string">'Method'</span>, step.request.method, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(method)</span> {</span>
-      step.request.method = method;
-      updateRequest();
-    });
   }
 });
 
