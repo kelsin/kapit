@@ -1,7 +1,7 @@
 {
   "name": "kapit",
   "version": "0.0.1",
-  "description": "Terminal API Tester with a focus on OAuth and JSON",
+  "description": "Terminal API Tester with a focus on JSON",
   "main": "lib/kapit.js",
   "scripts": {
     "test": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha"
