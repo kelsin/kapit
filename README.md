@@ -5,10 +5,11 @@ Terminal API Tester with a focus on JSON
 [![NPM Version](http://img.shields.io/npm/v/kapit.svg)](https://www.npmjs.org/package/kapit)
 [![David Dependencies](http://img.shields.io/david/kelsin/kapit.svg)](https://david-dm.org/kelsin/kapit)
 [![David devDependencies](http://img.shields.io/david/dev/kelsin/kapit.svg)](https://david-dm.org/kelsin/kapit)
+[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kelsin/kapit/blob/master/LICENSE)
+
 [![Build Status](http://img.shields.io/travis/kelsin/kapit.svg)](https://travis-ci.org/kelsin/kapit)
 [![Code Coverage](http://img.shields.io/codeclimate/coverage/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
 [![Code Climate](http://img.shields.io/codeclimate/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
-[![License](http://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/kelsin/kapit/blob/master/LICENSE)
 [![Tips](https://img.shields.io/gratipay/kelsin.svg)](https://gratipay.com/kelsin/)
 
 **Note**: this software is still in early alpha and is not fully featured, and
