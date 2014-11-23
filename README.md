@@ -176,8 +176,6 @@ If you want to use PhantomJS or Chrome Webdriver you need to install them. On Ma
     brew install phantomjs
     brew install chromedriver
 
-## Usage
-
 ## Development
 
 Checkout and install all dependencies:
