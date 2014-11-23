@@ -5,7 +5,250 @@
 <a href="https://codeclimate.com/github/kelsin/kapit"><img src="http://img.shields.io/codeclimate/github/kelsin/kapit.svg" alt="Code Climate"></a>
 <a href="https://github.com/kelsin/kapit/blob/master/LICENSE"><img src="http://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
 <a href="https://gratipay.com/kelsin/"><img src="https://img.shields.io/gratipay/kelsin.svg" alt="Tips"></a></p>
-<h2 id="webdriver-support">Webdriver Support</h2>
+<p><strong>Note</strong>: this software is still in early alpha and is not fully featured, and
+will probably break on you.</p>
+<p><img src="https://raw.githubusercontent.com/kelsin/kapit/master/screenshot.png" alt="Screenshot"></p>
+<p>Kapit is a program that runs in your terminal and allows you to run HTTP
+commands. While not nearly as full featured as <a href="http://curl.haxx.se/">curl</a> or
+libraries (like <a href="https://github.com/request/request">request</a>) it has a few
+features that I felt the other API testing programs were lacking.</p>
+<h3 id="reasons">Reasons</h3>
+<ul>
+<li>I wanted a client that saved all state so I can launch it later and have all
+of my inputs and outputs the same as when I left.</li>
+<li>I wanted to include <a href="https://luckymarmot.com/paw">Paw</a>&#39;s feature of using
+parts of other requests in new requests.</li>
+<li>I wanted to setup a chain of requests that all build on one another.</li>
+<li>I wanted to include
+<a href="http://docs.seleniumhq.org/projects/webdriver/">Webdriver</a> support so we can
+handle fancy OAuth 2.0 flows that require browser use.</li>
+<li>I&#39;m not afraid of using my
+<a href="http://www.gnu.org/software/emacs/">favorite editor</a> to edit JSON. I&#39;m ok
+editing request bodies like this, and using this for many advanced options.</li>
+<li>I wanted simple options to be accessible with single key presses.</li>
+</ul>
+<h3 id="alternatives">Alternatives</h3>
+<ul>
+<li><a href="http://www.getpostman.com/">Postman</a> - Chrome Extension</li>
+<li><a href="https://luckymarmot.com/paw">Paw</a> - Mac Desktop App</li>
+<li><a href="http://curl.haxx.se/">curl</a> - Command line tool</li>
+</ul>
+<h3 id="what-i-used">What I Used</h3>
+<p>This client uses <a href="https://github.com/chjj/blessed">blessed</a> for the UI and
+<a href="https://github.com/request/request">request</a> as an HTTP node library. Other
+node dependencies can be seen in our
+<a href="https://github.com/kelsin/kapit/blob/master/package.json">package.json</a> file.</p>
+<p>I use <a href="https://github.com/nevir/groc">groc</a> to document my code and
+<a href="http://mochajs.org/">mocha</a>, <a href="http://chaijs.com/">chai</a>,
+<a href="http://sinonjs.org/">sinon</a>, and
+<a href="http://gotwarlost.github.io/istanbul/">istanbul</a> to test it.</p>
+<h2 id="overview">Overview</h2>
+<p>Kapit saves all of it&#39;s data in one file that defaults to
+<code>~/.kapit/state.json</code>. If you want you can have many files with kapit states by
+starting kapit with a different file.</p>
+<p>In one file you can create many chains. Chains can each hold many steps which
+represent one request each.</p>
+<p>The main window of kapit shows your current chain on the top, the current step&#39;s
+request data on the left, and the response on the right. You hit keybindings
+that help you edit various parts of your step&#39;s request. When your finally ready
+you can hit <code>x</code> to run the step and see the response.</p>
+<p>The real power comes from when you chain multiple requests together allowing you
+to follow discoverable APIs or handle authentication easily.</p>
+<h2 id="usage">Usage</h2>
+<h3 id="templates">Templates</h3>
+<p>Any piece of data in the request is run through
+<a href="http://handlebarsjs.com/">handlebars</a> before being used. This means any piece
+of json data or field that is a string can use data from any other request in
+your chain. Any data in the current context can be used in your handlebars
+requests and you can view the context by hitting <code>Ctrl-c</code>.</p>
+<p>So if I have a step named <code>Token</code> that has the following body:</p>
+<pre><code class="lang-json">{
+  "<span class="hljs-attribute">token</span>": <span class="hljs-value"><span class="hljs-number">12345</span>
+</span>}</code></pre>
+<p>I can use it as part of my header in a new step by:</p>
+<ol>
+<li>focusing the new step</li>
+<li>hitting <code>h</code> to edit a header</li>
+<li>typing in <code>Authorization</code> to say which header I&#39;m editing</li>
+<li>entering: <code>Bearer {{Token.response.body.token}}</code></li>
+</ol>
+<p>Since Kapit will convert the body of the <code>Token</code> request to json we can pull out
+exactly what we need. If you requests have spaces in the name or arrays you can
+still use handlebars to get them out with strings like
+<code>{{[Name with space].list.5.item}}</code>. You should check out
+<a href="http://handlebarsjs.com/expressions.html">Handlebars documentation</a> for more
+details.</p>
+<h3 id="webdriver-support">Webdriver Support</h3>
+<p>Webdriver support is very wonky at the moment while I work on an interface. I
+have it working, but it&#39;s not very usable for generic situations yet.</p>
+<h3 id="keybindings">Keybindings</h3>
+<p>Here are the basic keybindings</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>q</code></td>
+<td>Quit</td>
+</tr>
+<tr>
+<td><code>s</code></td>
+<td>Save state. *This will most like be automatic very soon</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>Display Help</td>
+</tr>
+<tr>
+<td><code>C</code></td>
+<td>New Chain</td>
+</tr>
+<tr>
+<td><code>N</code></td>
+<td>New Step</td>
+</tr>
+<tr>
+<td><code>D</code></td>
+<td>Delete Step</td>
+</tr>
+<tr>
+<td><code>Ctrl-n</code></td>
+<td>Next Step</td>
+</tr>
+<tr>
+<td><code>Ctrl-p</code></td>
+<td>Previous Step</td>
+</tr>
+<tr>
+<td><code>c</code></td>
+<td>Edit chain name</td>
+</tr>
+<tr>
+<td><code>n</code></td>
+<td>Edit step name</td>
+</tr>
+<tr>
+<td><code>t</code></td>
+<td>Edit step type</td>
+</tr>
+<tr>
+<td><code>tab</code></td>
+<td>Switch focus from the request to the response</td>
+</tr>
+<tr>
+<td><code>w</code></td>
+<td>View request/response raw JSON objects, instead of formatted text</td>
+</tr>
+<tr>
+<td><code>Ctrl-c</code></td>
+<td>View the context JSON blob that&#39;s available for variables *<em>editor</em></td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>Edit request body *<em>editor</em></td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>Edit request data *<em>editor</em></td>
+</tr>
+<tr>
+<td><code>f</code></td>
+<td>Edit request form data *<em>editor</em></td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>Edit request header</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>Edit request method</td>
+</tr>
+<tr>
+<td><code>o</code></td>
+<td>Toggle request json format</td>
+</tr>
+<tr>
+<td><code>u</code></td>
+<td>Edit url</td>
+</tr>
+<tr>
+<td><code>x</code></td>
+<td>Execute current step</td>
+</tr>
+<tr>
+<td><code>r</code></td>
+<td>Reset current step</td>
+</tr>
+<tr>
+<td><code>R</code></td>
+<td>Reset all steps</td>
+</tr>
+</tbody>
+</table>
+<p>When you&#39;re focused on a window that can scroll you can use the following keys
+to do so:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>j</code></td>
+<td>Down one line</td>
+</tr>
+<tr>
+<td><code>k</code></td>
+<td>Up one line</td>
+</tr>
+<tr>
+<td><code>Ctrl-d</code></td>
+<td>Down one page</td>
+</tr>
+<tr>
+<td><code>Ctrl-u</code></td>
+<td>Up one page</td>
+</tr>
+<tr>
+<td><code>g</code></td>
+<td>Go to beginning</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td>Go to end</td>
+</tr>
+</tbody>
+</table>
+<h2 id="todo">TODO</h2>
+<ul>
+<li>I&#39;m thinking about removing all in terminal editors and just having the main
+interface be editing the json blogs in your editor of choice. Will decide
+after more use.</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>First make sure you have a recent version of <a href="http://nodejs.org/">node.js</a> installed and then run:</p>
+<pre><code>npm install -g kapit</code></pre>
+<p>You can then run with:</p>
+<pre><code>kapit</code></pre>
+<p>Kapit will use the default config file of <code>~/.kapit/state.json</code> but you can pass
+another file on the command line if you wish:</p>
+<pre><code>kapit another-file.json</code></pre>
+<h3 id="webdriver-support">Webdriver Support</h3>
 <p>If you want to use PhantomJS or Chrome Webdriver you need to install them. On Mac OSX this can be done with brew:</p>
 <pre><code>brew install phantomjs
-brew install chromedriver</code></pre></div></div></div></div></body></html>
+brew install chromedriver</code></pre>
+<h2 id="development">Development</h2>
+<p>Checkout and install all dependencies:</p>
+<pre><code>git clone git@github.com:kelsin/kapit.git
+cd kapit
+npm install</code></pre>
+<p>You can then run the tests:</p>
+<pre><code>npm test</code></pre>
+<p>Or build the documentation:</p>
+<pre><code>groc</code></pre></div></div></div></div></body></html>
