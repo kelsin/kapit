@@ -18,18 +18,6 @@ commands. While not nearly as full featured as [curl](http://curl.haxx.se/) or
 libraries (like [request](https://github.com/request/request)) it has a few
 features that I felt the other API testing programs were lacking.
 
-### What I Used
-
-This client uses [blessed](https://github.com/chjj/blessed) for the UI and
-[request](https://github.com/request/request) as an HTTP node library. Other
-node dependencies can be seen in our
-[package.json](https://github.com/kelsin/kapit/blob/master/package.json) file.
-
-I use [groc](https://github.com/nevir/groc) to document my code and
-[mocha](http://mochajs.org/), [chai](http://chaijs.com/),
-[sinon](http://sinonjs.org/), and
-[istanbul](http://gotwarlost.github.io/istanbul/) to test it.
-
 ### Reasons
 
 * I wanted a client that saved all state so I can launch it later and have all
@@ -51,6 +39,18 @@ editing request bodies like this, and using this for many advanced options.
 * [Paw](https://luckymarmot.com/paw) - Mac Desktop App
 * [curl](http://curl.haxx.se/) - Command line tool
 
+### What I Used
+
+This client uses [blessed](https://github.com/chjj/blessed) for the UI and
+[request](https://github.com/request/request) as an HTTP node library. Other
+node dependencies can be seen in our
+[package.json](https://github.com/kelsin/kapit/blob/master/package.json) file.
+
+I use [groc](https://github.com/nevir/groc) to document my code and
+[mocha](http://mochajs.org/), [chai](http://chaijs.com/),
+[sinon](http://sinonjs.org/), and
+[istanbul](http://gotwarlost.github.io/istanbul/) to test it.
+
 ## Overview
 
 Kapit saves all of it's data in one file that defaults to
@@ -61,7 +61,12 @@ In one file you can create many chains. Chains can each hold many steps which
 represent one request each.
 
 The main window of kapit shows your current chain on the top, the current step's
-request data on the left, and the response on the right.
+request data on the left, and the response on the right. You hit keybindings
+that help you edit various parts of your step's request. When your finally ready
+you can hit `x` to run the step and see the response.
+
+The real power comes from when you chain multiple requests together allowing you
+to follow discoverable APIs or handle authentication easily.
 
 ## Usage
 
@@ -94,6 +99,11 @@ still use handlebars to get them out with strings like
 `{{[Name with space].list.5.item}}`. You should check out
 [Handlebars documentation](http://handlebarsjs.com/expressions.html) for more
 details.
+
+### Webdriver Support
+
+Webdriver support is very wonky at the moment while I work on an interface. I
+have it working, but it's not very usable for generic situations yet.
 
 ### Keybindings
 
