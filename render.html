@@ -1,0 +1,211 @@
+<!DOCTYPE html><html lang="en"><head><title>render</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="render"><meta name="groc-project-path" content="lib/render.js"><meta name="groc-github-url" content="https://github.com/kelsin/kapit"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/kelsin/kapit/blob/master/lib/render.js">lib/render.js</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-keyword">var</span> _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">'lodash'</span>);
+<span class="hljs-keyword">var</span> cardinal = <span class="hljs-built_in">require</span>(<span class="hljs-string">'cardinal'</span>);
+
+<span class="hljs-keyword">var</span> data = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./data'</span>);
+
+exports.help = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> output = <span class="hljs-string">''</span>;
+
+  output += <span class="hljs-string">'{yellow-fg}Focused Element{/}'</span>;
+  output += <span class="hljs-string">'\n {green-fg}j{/} move down a line'</span>;
+  output += <span class="hljs-string">'\n {green-fg}k{/} move up a line'</span>;
+  output += <span class="hljs-string">'\n {green-fg}ctrl-d{/} move down a page'</span>;
+  output += <span class="hljs-string">'\n {green-fg}ctrl-u{/} move up a page'</span>;
+  output += <span class="hljs-string">'\n {green-fg}g{/} move to the begining'</span>;
+  output += <span class="hljs-string">'\n {green-fg}G{/} move to the end'</span>;
+  output += <span class="hljs-string">'\n\n{yellow-fg}Application{/}'</span>;
+  output += <span class="hljs-string">'\n {green-fg}q{/} quit'</span>;
+  output += <span class="hljs-string">'\n {green-fg}s{/} save application state'</span>;
+  output += <span class="hljs-string">'\n {green-fg}?{/} display help'</span>;
+  output += <span class="hljs-string">'\n {green-fg}c{/} view current context (in editor)'</span>;
+  output += <span class="hljs-string">'\n {green-fg}ctrl-n{/} next step in current chain'</span>;
+  output += <span class="hljs-string">'\n {green-fg}ctrl-p{/} previous step in current chain'</span>;
+  output += <span class="hljs-string">'\n {green-fg}w{/} display raw data instead of formatted request/response'</span>;
+  output += <span class="hljs-string">'\n {green-fg}tab{/} switch focus between request and response'</span>;
+  output += <span class="hljs-string">'\n\n{yellow-fg}Step{/}'</span>;
+  output += <span class="hljs-string">'\n {green-fg}shift-d{/} delete current step'</span>;
+  output += <span class="hljs-string">'\n {green-fg}shift-n{/} create new step'</span>;
+  output += <span class="hljs-string">'\n {green-fg}n{/} edit name'</span>;
+  output += <span class="hljs-string">'\n {green-fg}t{/} edit type'</span>;
+  output += <span class="hljs-string">'\n\n{yellow-fg}Request{/}'</span>;
+  output += <span class="hljs-string">'\n {green-fg}a{/} edit action'</span>;
+  output += <span class="hljs-string">'\n {green-fg}b{/} edit body (in editor)'</span>;
+  output += <span class="hljs-string">'\n {green-fg}d{/} edit data (in editor)'</span>;
+  output += <span class="hljs-string">'\n {green-fg}f{/} edit form (in editor)'</span>;
+  output += <span class="hljs-string">'\n {green-fg}h{/} edit header'</span>;
+  output += <span class="hljs-string">'\n {green-fg}m{/} edit method'</span>;
+  output += <span class="hljs-string">'\n {green-fg}o{/} toggle json format'</span>;
+  output += <span class="hljs-string">'\n {green-fg}u{/} edit url'</span>;
+  output += <span class="hljs-string">'\n {green-fg}x{/} execute request'</span>;
+  output += <span class="hljs-string">'\n\n{yellow-fg}Response{/}'</span>;
+  output += <span class="hljs-string">'\n {green-fg}r{/} reset response'</span>;
+  output += <span class="hljs-string">'\n {green-fg}R{/} reset all responses'</span>;
+
+  <span class="hljs-keyword">return</span> output;
+};
+
+exports.chain = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">return</span> _(data.getCurrentSteps()).map(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(step, index)</span> {</span>
+    <span class="hljs-keyword">var</span> color = <span class="hljs-string">''</span>;
+
+    <span class="hljs-keyword">if</span>(index === data.getCurrentChain().current) {
+      color += <span class="hljs-string">'{underline}'</span>;
+    }
+
+    <span class="hljs-keyword">if</span>(step.response.error &amp;&amp; !step.response.completed) {
+      color += <span class="hljs-string">'{yellow-fg}'</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(step.response.error) {
+      color += <span class="hljs-string">'{red-fg}'</span>;
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(step.response.completed) {
+      color += <span class="hljs-string">'{green-fg}'</span>;
+    } <span class="hljs-keyword">else</span> {
+      color += <span class="hljs-string">'{blue-fg}'</span>;
+    }
+
+    color += step.name + <span class="hljs-string">'{/}'</span>;
+
+    <span class="hljs-keyword">return</span> color;
+  }).join(<span class="hljs-string">' → '</span>);
+};
+
+exports.response = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(step)</span> {</span>
+  <span class="hljs-keyword">var</span> output = <span class="hljs-string">''</span>;
+
+  <span class="hljs-keyword">if</span>(data.raw()) {
+    <span class="hljs-keyword">var</span> outputStep = _.cloneDeep(step);
+    <span class="hljs-keyword">delete</span> outputStep.name;
+    <span class="hljs-keyword">delete</span> outputStep.type;
+    <span class="hljs-keyword">delete</span> outputStep.raw;
+    <span class="hljs-keyword">delete</span> outputStep.request;
+    <span class="hljs-keyword">delete</span> outputStep.render;
+    <span class="hljs-keyword">delete</span> outputStep.compiled;
+
+    output += cardinal.highlight(<span class="hljs-built_in">JSON</span>.stringify(outputStep, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>),
+                                 { json: <span class="hljs-literal">true</span> });
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(step.response.error &amp;&amp; !step.response.completed) {
+    output += <span class="hljs-string">'{yellow-fg}Error:{/} '</span> + step.response.error;
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(step.response.completed) {
+    <span class="hljs-keyword">if</span>(step.type === <span class="hljs-string">'HTTP'</span>) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Status</p></div></div><div class="code"><div class="wrapper">      output += <span class="hljs-string">'{yellow-fg}status{/}: '</span>;
+      <span class="hljs-keyword">if</span>(step.response.error) {
+        output += <span class="hljs-string">'{red-fg}'</span>;
+      } <span class="hljs-keyword">else</span> {
+        output += <span class="hljs-string">'{green-fg}'</span>;
+      }
+      output += step.response.status + <span class="hljs-string">'{/}\n\n'</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Headers</p></div></div><div class="code"><div class="wrapper">      output += _.reduce(step.response.headers, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(str, value, header)</span> {</span>
+        <span class="hljs-keyword">return</span> str + <span class="hljs-string">'{yellow-fg}'</span> + header + <span class="hljs-string">'{/}: '</span> + value + <span class="hljs-string">'\n'</span>;
+      }, <span class="hljs-string">''</span>);
+      output += <span class="hljs-string">'\n'</span>;</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Body</p></div></div><div class="code"><div class="wrapper">      output += cardinal.highlight(<span class="hljs-built_in">JSON</span>.stringify(step.response.body, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>),
+                                   { json: <span class="hljs-literal">true</span> });
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (step.type === <span class="hljs-string">'OAUTH'</span>) {
+      <span class="hljs-keyword">if</span>(step.request.action === <span class="hljs-string">'authorize'</span>) {
+        output += <span class="hljs-string">'{yellow-fg}code{/}: '</span> + step.response.code;
+      }
+    }
+  }
+
+  <span class="hljs-keyword">return</span> output;
+};
+
+exports.body = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(request)</span> {</span>
+  <span class="hljs-keyword">if</span>(request.body) {
+    <span class="hljs-keyword">if</span>(_.isPlainObject(request.body)) {
+      <span class="hljs-keyword">return</span> cardinal.highlight(<span class="hljs-built_in">JSON</span>.stringify(request.body, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>), { json: <span class="hljs-literal">true</span> });
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">return</span> request.body;
+    }
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>;
+  }
+};
+
+exports.json = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(data)</span> {</span>
+  <span class="hljs-keyword">if</span>(data) {
+    <span class="hljs-keyword">return</span> cardinal.highlight(<span class="hljs-built_in">JSON</span>.stringify(data, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>),
+                              { json: <span class="hljs-literal">true</span> });
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">return</span> <span class="hljs-string">''</span>;
+  }
+};
+
+exports.http = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(request, label)</span> {</span>
+  <span class="hljs-keyword">var</span> output = <span class="hljs-string">''</span>;
+
+  <span class="hljs-keyword">if</span> (request) {
+    output += <span class="hljs-string">'\n'</span>;
+
+    <span class="hljs-keyword">if</span>(label) {
+      output += <span class="hljs-string">'\n{yellow-fg}'</span> + label + <span class="hljs-string">'{/}'</span>;
+    }
+
+    output += <span class="hljs-string">'\n{green-fg}'</span> + request.method + <span class="hljs-string">'{/} '</span> + request.url;
+    _.each(request.headers, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value, key)</span> {</span>
+      output += <span class="hljs-string">'\n{green-fg}'</span> + key + <span class="hljs-string">'{/}: '</span> + value;
+    });
+
+    <span class="hljs-keyword">if</span> (request.body) {
+      output += <span class="hljs-string">'\n\n{blue-fg}Body{/}\n'</span>;
+      output += exports.body(request);
+    }
+
+    <span class="hljs-keyword">if</span> (request.form) {
+      output += <span class="hljs-string">'\n\n{blue-fg}Form{/}\n'</span>;
+      output += exports.json(request.form);
+    }
+  }
+
+  <span class="hljs-keyword">return</span> output;
+};
+
+exports.request = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(step)</span> {</span>
+  <span class="hljs-keyword">var</span> output = <span class="hljs-string">''</span>;
+
+  <span class="hljs-keyword">if</span> (step.type === <span class="hljs-string">'HTTP'</span> &amp;&amp; !data.raw()) {
+    output += <span class="hljs-string">'{green-fg}Name{/}: '</span> + step.name;
+    output += <span class="hljs-string">'\n{green-fg}Type{/}: '</span> + step.type;
+
+    <span class="hljs-keyword">if</span>(step.request.json) {
+      output += <span class="hljs-string">'\n{green-fg}Format{/}: JSON'</span>;
+    }
+
+    output += exports.http(step.request);
+    output += exports.http(step.compiled, <span class="hljs-string">'Compiled'</span>);
+
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (step.type === <span class="hljs-string">'OAUTH'</span> &amp;&amp; !data.raw()) {
+    output += <span class="hljs-string">'{green-fg}Name{/}: '</span> + step.name + <span class="hljs-string">'\n'</span>;
+    output += <span class="hljs-string">'{green-fg}Type{/}: '</span> + step.type + <span class="hljs-string">'\n\n'</span>;
+    output += <span class="hljs-string">'{green-fg}'</span> + step.request.action + <span class="hljs-string">'{/} '</span> + step.request.url;
+
+    <span class="hljs-keyword">if</span> (step.request.data) {
+      output += <span class="hljs-string">'\n\n'</span>;
+      output += <span class="hljs-string">'{blue-fg}Data{/}\n'</span>;
+      output += exports.json(step.request.data);
+    }
+
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">var</span> outputStep = _.cloneDeep(step);
+    <span class="hljs-keyword">delete</span> outputStep.response;
+    <span class="hljs-keyword">delete</span> outputStep.render;
+    <span class="hljs-keyword">delete</span> outputStep.raw;
+
+    <span class="hljs-keyword">try</span> {
+      outputStep.request.body = <span class="hljs-built_in">JSON</span>.parse(step.request.body);
+    }
+    <span class="hljs-keyword">catch</span> (e) {
+      outputStep.request.body = _.cloneDeep(step.request.body);
+    }
+
+    <span class="hljs-keyword">try</span> {
+      outputStep.request.data = <span class="hljs-built_in">JSON</span>.parse(step.request.data);
+    }
+    <span class="hljs-keyword">catch</span> (e) {
+      outputStep.request.data = _.cloneDeep(step.request.data);
+    }
+
+    output += cardinal.highlight(<span class="hljs-built_in">JSON</span>.stringify(outputStep, <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>),
+                                 { json: <span class="hljs-literal">true</span> });
+  }
+
+  <span class="hljs-keyword">return</span> output;
+};</div></div></div></div></body></html>

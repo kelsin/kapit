@@ -1,0 +1,112 @@
+<!DOCTYPE html><html lang="en"><head><title>widgets</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="widgets"><meta name="groc-project-path" content="lib/widgets.js"><meta name="groc-github-url" content="https://github.com/kelsin/kapit"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/kelsin/kapit/blob/master/lib/widgets.js">lib/widgets.js</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-keyword">var</span> _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">'lodash'</span>);
+<span class="hljs-keyword">var</span> blessed = <span class="hljs-built_in">require</span>(<span class="hljs-string">'blessed'</span>);
+
+exports.modal = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(text, options)</span> {</span>
+  <span class="hljs-keyword">return</span> blessed.box(_.merge({
+    padding: {
+      left: <span class="hljs-number">1</span>,
+      right: <span class="hljs-number">1</span>
+    },
+    top: <span class="hljs-string">'center'</span>,
+    left: <span class="hljs-string">'center'</span>,
+    tags: <span class="hljs-literal">true</span>,
+    content: <span class="hljs-string">''</span>,
+    shrink: <span class="hljs-literal">true</span>,
+    hidden: <span class="hljs-literal">true</span>,
+    label: text,
+    scrollable: <span class="hljs-literal">true</span>,
+    alwaysScroll: <span class="hljs-literal">true</span>,
+    keys: <span class="hljs-literal">true</span>,
+    vi: <span class="hljs-literal">true</span>,
+    border: {
+      type: <span class="hljs-string">'line'</span>,
+      fg: <span class="hljs-string">'black'</span>
+    },
+    style: {
+      label: {
+        fg: <span class="hljs-string">'magenta'</span>
+      },
+      focus: {
+        border: {
+          fg: <span class="hljs-string">'magenta'</span>,
+          bold: <span class="hljs-literal">true</span>
+        }
+      }
+    }
+  }, (options || {})));
+};
+
+exports.input = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(text, options)</span> {</span>
+  <span class="hljs-keyword">return</span> blessed.Textbox(_.merge({
+    padding: {
+      left: <span class="hljs-number">1</span>,
+      right: <span class="hljs-number">1</span>
+    },
+    top: <span class="hljs-string">'center'</span>,
+    left: <span class="hljs-string">'center'</span>,
+    width: <span class="hljs-string">'50%'</span>,
+    height: <span class="hljs-number">3</span>,
+    tags: <span class="hljs-literal">true</span>,
+    content: <span class="hljs-string">''</span>,
+    hidden: <span class="hljs-literal">true</span>,
+    label: text,
+    border: {
+      type: <span class="hljs-string">'line'</span>,
+      fg: <span class="hljs-string">'black'</span>
+    },
+    style: {
+      label: {
+        fg: <span class="hljs-string">'magenta'</span>
+      },
+      focus: {
+        border: {
+          fg: <span class="hljs-string">'magenta'</span>,
+          bold: <span class="hljs-literal">true</span>
+        }
+      }
+    }
+  }, (options || {})));
+};
+
+exports.section = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(text, options)</span> {</span>
+  <span class="hljs-keyword">return</span> blessed.box(_.merge({
+    padding: {
+      left: <span class="hljs-number">1</span>,
+      right: <span class="hljs-number">1</span>
+    },
+    label: text,
+    tags: <span class="hljs-literal">true</span>,
+    content: <span class="hljs-string">''</span>,
+    border: {
+      type: <span class="hljs-string">'line'</span>,
+      fg: <span class="hljs-string">'black'</span>
+    },
+    style: {
+      label: {
+        fg: <span class="hljs-string">'magenta'</span>
+      },
+      focus: {
+        border: {
+          fg: <span class="hljs-string">'magenta'</span>,
+          bold: <span class="hljs-literal">true</span>
+        }
+      }
+    }
+  }, (options || {})));
+};
+
+exports.message = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options)</span> {</span>
+  <span class="hljs-keyword">return</span> blessed.box(_.merge({
+    padding: {
+      left: <span class="hljs-number">1</span>,
+      right: <span class="hljs-number">1</span>
+    },
+    width: <span class="hljs-string">'100%'</span>,
+    height: <span class="hljs-number">1</span>,
+    bottom: <span class="hljs-number">1</span>,
+    content: <span class="hljs-string">''</span>,
+    tags: <span class="hljs-literal">true</span>
+  }, (options || {})));
+};</div></div></div></div></body></html>

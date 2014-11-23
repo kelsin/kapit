@@ -1,0 +1,476 @@
+<!DOCTYPE html><html lang="en"><head><title>kapit</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="kapit"><meta name="groc-project-path" content="lib/kapit.js"><meta name="groc-github-url" content="https://github.com/kelsin/kapit"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/kelsin/kapit/blob/master/lib/kapit.js">lib/kapit.js</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="hljs-pi">'use strict'</span>;
+
+<span class="hljs-keyword">var</span> _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">'lodash'</span>);
+<span class="hljs-keyword">var</span> blessed = <span class="hljs-built_in">require</span>(<span class="hljs-string">'blessed'</span>);
+
+<span class="hljs-keyword">var</span> data = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./data'</span>);
+<span class="hljs-keyword">var</span> edit = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./edit'</span>);
+<span class="hljs-keyword">var</span> exec = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./exec'</span>);
+<span class="hljs-keyword">var</span> render = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./render'</span>);
+<span class="hljs-keyword">var</span> widgets = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./widgets'</span>);
+
+<span class="hljs-keyword">var</span> screen = blessed.screen();</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="widgets">Widgets</h2>
+<p>This app only needs four widgets on the screen. A message box at the bottom,
+a step list at the top and then two windows for the request and response.</p>
+<p>We abstract away our common <a href="https://github.com/chjj/blessed">blessed</a>
+options with the <strong>section</strong> function, create our widgets, and then add them
+to the screen.</p>
+<ul>
+<li><strong>chain</strong>: the top window showing the current chain&#39;s list of steps.</li>
+<li><strong>request</strong>: the left window showing the current request.</li>
+<li><strong>response</strong>: the right window showing the current response.</li>
+<li><strong>message</strong>: the message line at the bottom of the app.</li>
+</ul></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> chain = widgets.section(<span class="hljs-string">'No Chains'</span>, {
+  align: <span class="hljs-string">'left'</span>,
+  width: <span class="hljs-string">'100%'</span>,
+  height: <span class="hljs-number">3</span>,
+  content: <span class="hljs-string">''</span>
+});
+
+<span class="hljs-keyword">var</span> request = widgets.section(<span class="hljs-string">'Request'</span>, {
+  width: <span class="hljs-string">'50%'</span>,
+  top: <span class="hljs-number">3</span>,
+  bottom: <span class="hljs-number">2</span>,
+  scrollable: <span class="hljs-literal">true</span>,
+  alwaysScroll: <span class="hljs-literal">true</span>,
+  keys: <span class="hljs-literal">true</span>,
+  vi: <span class="hljs-literal">true</span>
+});
+
+<span class="hljs-keyword">var</span> response = widgets.section(<span class="hljs-string">'Response'</span>, {
+  width: <span class="hljs-string">'50%'</span>,
+  right: <span class="hljs-number">0</span>,
+  top: <span class="hljs-number">3</span>,
+  bottom: <span class="hljs-number">2</span>,
+  focused: <span class="hljs-literal">true</span>,
+  scrollable: <span class="hljs-literal">true</span>,
+  alwaysScroll: <span class="hljs-literal">true</span>,
+  keys: <span class="hljs-literal">true</span>,
+  vi: <span class="hljs-literal">true</span>
+});
+
+<span class="hljs-keyword">var</span> help = widgets.modal(<span class="hljs-string">'Help'</span>, {
+  top: <span class="hljs-number">5</span>,
+  bottom: <span class="hljs-number">4</span>
+});
+help.setContent(render.help());
+
+<span class="hljs-keyword">var</span> input = widgets.input(<span class="hljs-string">'Input'</span>);
+
+<span class="hljs-keyword">var</span> message = widgets.message();
+
+<span class="hljs-keyword">var</span> setMessage = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(msg)</span> {</span>
+  message.setContent(msg);
+};
+
+<span class="hljs-keyword">var</span> clearMessage = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  message.setContent(<span class="hljs-string">''</span>);
+};
+clearMessage();
+
+screen.append(chain);
+screen.append(request);
+screen.append(response);
+screen.append(message);
+screen.append(input);
+screen.append(help);
+
+<span class="hljs-keyword">var</span> getInput = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(label, value, callback)</span> {</span>
+  input.setLabel(label);
+  input.setValue(value);
+  input.show();
+  screen.focusPush(input);
+  screen.render();
+  input.readInput(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err, value)</span> {</span>
+    input.hide();
+    screen.focusPop().focus();
+
+    <span class="hljs-keyword">if</span>(err) {
+      setMessage(<span class="hljs-string">'{red-fg}'</span> + err.message + <span class="hljs-string">'{/}'</span>);
+    } <span class="hljs-keyword">else</span> {
+      callback(value);
+    }
+
+    screen.render();
+  });
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Updates the chain widget with a new render</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> updateChain = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> currentChain = data.getCurrentChain();
+  <span class="hljs-keyword">if</span> (currentChain) {
+    chain.setLabel(currentChain.name);
+    chain.setContent(render.chain());
+  }
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Updates the request widget with a new render and caches it</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> updateRequest = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+  <span class="hljs-keyword">if</span> (step) {
+    step.render.request = render.request(step);
+    request.setContent(step.render.request);
+  } <span class="hljs-keyword">else</span> {
+    request.setContent(<span class="hljs-string">''</span>);
+  }
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Updates the response widget with a new render and caches it</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> updateResponse = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+  <span class="hljs-keyword">if</span> (step) {
+    step.render.response = render.response(step);
+    response.setContent(step.render.response);
+  } <span class="hljs-keyword">else</span> {
+    response.setContent(<span class="hljs-string">''</span>);
+  }
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Takes the current step and loads the request and response from previous
+renders. If there are no previous renders, then create them.</p></div></div><div class="code"><div class="wrapper"><span class="hljs-keyword">var</span> activateStep = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    <span class="hljs-keyword">if</span>(!step.render.request) {
+      step.render.request = render.request(step);
+    }
+    request.setContent(step.render.request);
+
+    <span class="hljs-keyword">if</span>(!step.render.response) {
+      step.render.response = render.response(step);
+    }
+    response.setContent(step.render.response);
+
+    updateChain();
+
+    screen.render();
+  }
+};</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><h2 id="keybindings">Keybindings</h2>
+<p>Here we define all of the keybindings on our app and what they do.</p></div></div><div class="code"><div class="wrapper">screen.key(<span class="hljs-string">'q'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">return</span> process.exit(<span class="hljs-number">0</span>);
+});
+
+screen.key(<span class="hljs-string">'?'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  help.show();
+  screen.focusPush(help);
+  screen.grabKeys = <span class="hljs-literal">true</span>;
+  screen.render();
+});
+help.key([<span class="hljs-string">'escape'</span>, <span class="hljs-string">'?'</span>, <span class="hljs-string">'q'</span>], <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  help.hide();
+  screen.grabKeys = <span class="hljs-literal">false</span>;
+  screen.focusPop().focus();
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'C-n'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  data.nextStep();
+  activateStep();
+});
+
+screen.key(<span class="hljs-string">'C-p'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  data.prevStep();
+  activateStep();
+});
+
+screen.key(<span class="hljs-string">'x'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    data.resetStep();
+    setMessage(<span class="hljs-string">'{bold}{red-fg}Loading ...{/}'</span>);
+    updateResponse();
+    updateChain();
+    screen.render();
+
+    exec.step(step)
+      .finally(clearMessage)
+      .catch(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(err)</span> {</span>
+        step.response.error = err.message;
+      })
+      .finally(updateRequest)
+      .finally(updateResponse)
+      .finally(updateChain)
+      .finally(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+        screen.render();
+      });
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No request to execute!{/}'</span>);
+    screen.render();
+  }
+});
+
+screen.key(<span class="hljs-string">'S-s'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  setMessage(<span class="hljs-string">'Saving...'</span>);
+  screen.render();
+
+  data.save().then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    setMessage(<span class="hljs-string">'Saved '</span> + data.getFilename());
+    screen.render();
+  });
+});
+
+screen.key(<span class="hljs-string">'S-n'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> currentChain = data.getCurrentChain();
+
+  <span class="hljs-keyword">if</span> (currentChain) {
+    data.newStep();
+    updateRequest();
+    updateResponse();
+    updateChain();
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No current chain to add step to!{/} Use {yellow-fg}C{/} to create one!'</span>);
+  }
+
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'S-c'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  data.newChain();
+  updateRequest();
+  updateResponse();
+  updateChain();
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'S-d'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  getInput(<span class="hljs-string">'Confirm deletion by typing: delete'</span>, <span class="hljs-string">''</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(name)</span> {</span>
+    <span class="hljs-keyword">if</span> (name === <span class="hljs-string">'delete'</span>) {
+      data.deleteStep();
+      updateRequest();
+      updateResponse();
+      updateChain();
+    }
+  });
+});
+
+screen.key(<span class="hljs-string">'r'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    data.resetStep();
+    updateRequest();
+    updateResponse();
+    updateChain();
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No current step to reset!{/}'</span>);
+  }
+
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'S-r'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  data.resetAllSteps();
+  updateRequest();
+  updateResponse();
+  updateChain();
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'w'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    data.toggleRaw();
+    updateRequest();
+    updateResponse();
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No current step to toggle raw mode on!{/}'</span>);
+  }
+
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'tab'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">if</span>(request.focused) {
+    response.focus();
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (response.focused) {
+    request.focus();
+  }
+});
+
+screen.key(<span class="hljs-string">'b'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    <span class="hljs-keyword">var</span> text = step.request.body || (step.request.json ? {} : <span class="hljs-string">''</span>);
+    edit(screen, text).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(body)</span> {</span>
+      <span class="hljs-keyword">if</span> (body.trim()) {
+        <span class="hljs-keyword">if</span> (step.request.json) {
+          step.request.body = <span class="hljs-built_in">JSON</span>.parse(body);
+        } <span class="hljs-keyword">else</span> {
+          step.request.body = body;
+        }
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">delete</span> step.request.body;
+      }
+
+      updateRequest();
+      screen.render();
+    });
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No body to edit!{/}'</span>);
+    screen.render();
+  }
+});
+
+<span class="hljs-keyword">var</span> editJson = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    <span class="hljs-keyword">var</span> text = step.request[value] || <span class="hljs-string">''</span>;
+    edit(screen, text).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(edited)</span> {</span>
+      <span class="hljs-keyword">if</span> (edited.trim()) {
+        step.request[value] = <span class="hljs-built_in">JSON</span>.parse(edited);
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">delete</span> step.request[value];
+      }
+
+      updateRequest();
+      screen.render();
+    });
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No '</span> + value + <span class="hljs-string">' to edit!{/}'</span>);
+    screen.render();
+  }
+};
+
+screen.key(<span class="hljs-string">'f'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  editJson(<span class="hljs-string">'form'</span>);
+});
+
+screen.key(<span class="hljs-string">'d'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  editJson(<span class="hljs-string">'data'</span>);
+});
+
+screen.key(<span class="hljs-string">'C-c'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> context = data.context();
+
+  <span class="hljs-keyword">if</span>(!_.isEmpty(context)) {
+    <span class="hljs-keyword">var</span> text = <span class="hljs-built_in">JSON</span>.stringify(data.context(), <span class="hljs-literal">null</span>, <span class="hljs-number">2</span>);
+    edit(screen, text);
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No context to edit!{/}'</span>);
+    screen.render();
+  }
+});
+
+screen.key(<span class="hljs-string">'n'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    getInput(<span class="hljs-string">'Step Name'</span>, step.name, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(name)</span> {</span>
+      step.name = name;
+      updateChain();
+      updateRequest();
+    });
+  }
+});
+
+screen.key(<span class="hljs-string">'t'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    getInput(<span class="hljs-string">'Step Type'</span>, step.type, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(type)</span> {</span>
+      step.type = type;
+      data.resetStep();
+      updateRequest();
+    });
+  }
+});
+
+screen.key(<span class="hljs-string">'u'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    getInput(<span class="hljs-string">'URL'</span>, step.request.url, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(url)</span> {</span>
+      step.request.url = url;
+      updateRequest();
+    });
+  }
+});
+
+screen.key(<span class="hljs-string">'a'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    getInput(<span class="hljs-string">'Action'</span>, step.request.action, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(action)</span> {</span>
+      <span class="hljs-keyword">if</span> (action) {
+        step.request.action = action;
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">delete</span> step.request.action;
+      }
+      updateRequest();
+    });
+  }
+});
+
+screen.key(<span class="hljs-string">'c'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> currentChain = data.getCurrentChain();
+
+  <span class="hljs-keyword">if</span> (currentChain) {
+    getInput(<span class="hljs-string">'Chain Name'</span>, currentChain.name, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(name)</span> {</span>
+      <span class="hljs-keyword">if</span> (name) {
+        currentChain.name = name;
+      } <span class="hljs-keyword">else</span> {
+        currentChain.name = <span class="hljs-string">'Unnamed'</span>;
+      }
+      updateChain();
+    });
+  } <span class="hljs-keyword">else</span> {
+    setMessage(<span class="hljs-string">'{red-fg}No current chain to edit name on!{/}'</span>);
+    screen.render();
+  }
+});
+
+screen.key(<span class="hljs-string">'m'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    getInput(<span class="hljs-string">'Method'</span>, step.request.method, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(method)</span> {</span>
+      step.request.method = method;
+      updateRequest();
+    });
+  }
+});
+
+screen.key(<span class="hljs-string">'S-f'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  setMessage(<span class="hljs-string">'Data file: '</span> + data.getFilename());
+  screen.render();
+});
+
+screen.key(<span class="hljs-string">'o'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    step.request.json = !step.request.json;
+    updateRequest();
+    screen.render();
+  }
+});
+
+screen.key(<span class="hljs-string">'h'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+  <span class="hljs-keyword">var</span> step = data.getCurrentStep();
+
+  <span class="hljs-keyword">if</span> (step) {
+    getInput(<span class="hljs-string">'Header'</span>, <span class="hljs-string">''</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(header)</span> {</span>
+      <span class="hljs-keyword">var</span> current = <span class="hljs-string">''</span>;
+      <span class="hljs-keyword">if</span> (step.request.headers) {
+        current = step.request.headers[header] || <span class="hljs-string">''</span>;
+      }
+      getInput(<span class="hljs-string">'Value (leave blank to delete)'</span>, current, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> {</span>
+        <span class="hljs-keyword">if</span> (value) {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Add header</p></div></div><div class="code"><div class="wrapper">          <span class="hljs-keyword">if</span> (!step.request.hasOwnProperty(<span class="hljs-string">'headers'</span>)) {
+            step.request.headers = {};
+          }
+          step.request.headers[header] = value;
+        } <span class="hljs-keyword">else</span> {</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Remove header</p></div></div><div class="code"><div class="wrapper">          <span class="hljs-keyword">if</span> (step.request.headers) {
+            <span class="hljs-keyword">delete</span> step.request.headers[header];
+          }
+          <span class="hljs-keyword">if</span> (_.isEmpty(step.request.headers)) {
+            <span class="hljs-keyword">delete</span> step.request.headers;
+          }
+        }
+
+        updateRequest();
+      });
+    });
+  }
+});</div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Initialize the app by first loading the data file, then updating the screen.</p></div></div><div class="code"><div class="wrapper">data.load()
+  .then(updateRequest)
+  .then(updateResponse)
+  .then(updateChain)
+  .then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span> {</span>
+    screen.render();
+  })
+  .catch(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> {</span>
+    console.error(e.stack);
+  });</div></div></div></div></body></html>
