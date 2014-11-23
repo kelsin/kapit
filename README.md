@@ -16,7 +16,7 @@ commands. While not nearly as full featured as [curl](http://curl.haxx.se/) or
 libraries (like [request](https://github.com/request/request)) it has a few
 features that I felt the other API testing programs were lacking.
 
-### Using
+### What I Used
 
 This client uses [blessed](https://github.com/chjj/blessed) for the UI and
 [request](https://github.com/request/request) as an HTTP node library. Other
@@ -52,7 +52,7 @@ editing request bodies like this, and using this for many advanced options.
 ## Overview
 
 Kapit saves all of it's data in one file that defaults to
-`!/.kapit/state.json`. If you want you can have many files with kapit states by
+`~/.kapit/state.json`. If you want you can have many files with kapit states by
 starting kapit with a different file.
 
 In one file you can create many chains. Chains can each hold many steps which
@@ -61,8 +61,34 @@ represent one request each.
 The main window of kapit shows your current chain on the top, the current step's
 request data on the left, and the response on the right.
 
-
 ## Usage
+
+### Templates
+
+Any piece of data in the request is run through
+[handlebars](http://handlebarsjs.com/) before being used. This means any piece
+of json data or field that is a string can use data from any other request in
+your chain. Any data in the current context can be used in your handlebars
+requests and you can view the context by hitting `Ctrl-c`.
+
+So if I have a step named `Token` that has the following body:
+
+``` json
+{
+  "token": 12345
+}
+```
+
+I can use it as part of my header in a new step by focusing the new step,
+hitting `h` to edit a header. Typing in `Authorization` to say which header I'm
+editing and then entering: `Bearer {{Token.response.body.token}}`. Since Kapit
+will convert the body of the `Token` request to json we can pull out exactly
+what we need. If you requests have spaces in the name or arrays you can still
+use handlebars to get them out with strings like
+`{{[Name with space].list.5.item}}`. You should check out Handlebars
+documentation for more details.
+
+### Keybindings
 
 Here are the basic keybindings
 
