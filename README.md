@@ -1,8 +1,6 @@
 # Kapit
 
-**K**elsin's **API** **T**ester
-
-<strong>K</strong>elsin's <strong>API</strong> <strong>T</strong>ester
+### Kelsin's API Tester
 
 [![Build Status](http://img.shields.io/travis/kelsin/kapit.svg)](https://travis-ci.org/kelsin/kapit)
 [![Code Coverage](http://img.shields.io/codeclimate/coverage/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
