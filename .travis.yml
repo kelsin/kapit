@@ -1,10 +1,7 @@
 language: node_js
 node_js:
-- '0.10'
-- '0.11'
-matrix:
-  allow_failures:
-  - node_js: '0.11'
+- '8'
+- '10'
 env:
   global:
     - secure: "A6aMc3nfEJwNb8dGkrt51LlVvvBN6euqHziPFsDu/VuqPgL69CI5RQGB1rNYrxRcpVmn+kz9dENz93F08RfGiBi4ytoqLb5kE+vYze8GNwJatEOJTfYe/jfGcgPoCp4HDpLmif1Rl8rfPWiB1TpdcNBv2Hm8CuqJZj2mTHveVE4="
