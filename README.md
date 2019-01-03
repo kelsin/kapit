@@ -9,7 +9,6 @@ Terminal API Tester with a focus on JSON
 [![Build Status](http://img.shields.io/travis/kelsin/kapit.svg)](https://travis-ci.org/kelsin/kapit)
 [![Code Coverage](http://img.shields.io/codeclimate/coverage/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
 [![Code Climate](http://img.shields.io/codeclimate/github/kelsin/kapit.svg)](https://codeclimate.com/github/kelsin/kapit)
-[![Tips](https://img.shields.io/gratipay/kelsin.svg)](https://gratipay.com/kelsin/)
 
 **Note**: this software is still in early alpha and is not fully featured, and
 will probably break on you.
