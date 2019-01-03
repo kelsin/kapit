@@ -1,6 +1,6 @@
 {
   "name": "kapit",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Terminal API Tester with a focus on JSON",
   "main": "lib/kapit.js",
   "scripts": {
