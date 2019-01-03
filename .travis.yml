@@ -13,4 +13,4 @@ before_script:
   - chmod +x ./cc-test-reporter
   - ./cc-test-reporter before-build
 after_success:
-  - "[[ $TRAVIS_BRANCH = 'master' ]] && [[ $TRAVIS_NODE_VERSION = '10' ]] && ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
+  - "[[ $TRAVIS_BRANCH = 'master' ]] && [[ $TRAVIS_NODE_VERSION = '10' ]] && ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
