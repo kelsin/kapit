@@ -7,6 +7,9 @@ pids
 *.pid
 *.seed
 
+# Coverage
+.nyc_output
+
 # Generated docs
 doc
 

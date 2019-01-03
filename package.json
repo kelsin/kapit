@@ -4,7 +4,7 @@
   "description": "Terminal API Tester with a focus on JSON",
   "main": "lib/kapit.js",
   "scripts": {
-    "test": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha"
+    "test": "nyc mocha"
   },
   "bin": {
     "kapit": "bin/kapit"
@@ -34,8 +34,8 @@
   "devDependencies": {
     "chai": "^4.2.0",
     "codeclimate-test-reporter": "0.5.1",
-    "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
     "sinon": "^7.2.2"
   }
 }
