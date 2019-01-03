@@ -8,5 +8,9 @@ env:
 cache:
   directories:
   - node_modules
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 after_success:
-  - "[[ $TRAVIS_BRANCH = 'master' ]] && [[ $TRAVIS_NODE_VERSION = '0.10' ]] && ./node_modules/codeclimate-test-reporter/bin/codeclimate.js < coverage/lcov.info"
+  - "[[ $TRAVIS_BRANCH = 'master' ]] && [[ $TRAVIS_NODE_VERSION = '10' ]] && ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
