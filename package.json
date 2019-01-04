@@ -4,6 +4,7 @@
   "description": "Terminal API Tester with a focus on JSON",
   "main": "lib/kapit.js",
   "scripts": {
+    "doc": "groc",
     "test": "nyc --reporter=lcov --reporter=text mocha"
   },
   "bin": {
